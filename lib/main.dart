@@ -2,30 +2,100 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(ChangeNotifierProvider(create: (_) => Cart(), child: const ZimDashApp()));
+  runApp(ChangeNotifierProvider(create: (_) => AppData(), child: const ZimConnectApp()));
 }
 
-class Cart extends ChangeNotifier {
-  List<Map<String, dynamic>> items = [];
-  double get total => items.fold(0, (s, i) => s + (i['price'] * i['qty']));
-  int get count => items.fold(0, (s, i) => s + i['qty'] as int);
-  void add(Map<String, dynamic> p) {
-    var idx = items.indexWhere((e) => e['name'] == p['name']);
-    if (idx >= 0) { items[idx]['qty']++; } else { items.add({...p, 'qty': 1}); }
+class AppData extends ChangeNotifier {
+  String name = '';
+  String phone = '';
+  String email = '';
+  bool isLoggedIn = false;
+  List<Map<String, dynamic>> cart = [];
+  List<Map<String, dynamic>> marketItems = [
+    {'title':'Original Sneakers Size 42','price':25,'seller':'Tinashe 077...','location':'Mbare Musika','img':'👟'},
+    {'title':'Tomatoes Crate','price':12,'seller':'Amai Chipo 078...','location':'Mbare','img':'🍅'},
+    {'title':'iPhone 12','price':280,'seller':'Mike 071...','location':'CBD','img':'📱'},
+    {'title':'Zim Dancehall Mix 2024','price':0,'seller':'DJ Levels 077...','location':'Nearby - 50m','img':'🎵'},
+  ];
+  List<Map<String, dynamic>> messages = [
+    {'name':'Tinashe (Nearby)','last':'Sent you: Oliver Mtukudzi movie.mp4','offline':true},
+    {'name':'Amai - Market','last':'Muri kupi? Tomatoes still available?','offline':false},
+  ];
+
+  void login(String n, String p, String e) {
+    name = n; phone = p; email = e; isLoggedIn = true;
     notifyListeners();
   }
-  void remove(int i) { items.removeAt(i); notifyListeners(); }
-  void clear() { items.clear(); notifyListeners(); }
 }
 
-class ZimDashApp extends StatelessWidget {
-  const ZimDashApp({super.key});
+class ZimConnectApp extends StatelessWidget {
+  const ZimConnectApp({super.key});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primaryColor: const Color(0xFF009739)),
-      home: const MainNav(),
+      home: Consumer<AppData>(builder: (_, data, __) => data.isLoggedIn? const MainNav() : const LoginPage()),
+    );
+  }
+}
+
+// LOGIN - NAME + PHONE, EMAIL OPTIONAL
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final nameC = TextEditingController();
+  final phoneC = TextEditingController();
+  final emailC = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF009739),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Card(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  const Text('🇿🇼', style: TextStyle(fontSize: 50)),
+                  const Text('ZimConnect', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
+                  const Text('Chat • Share Files Without Data • Market', style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 24),
+                  TextField(controller: nameC, decoration: const InputDecoration(labelText: 'Full Name *', hintText: 'e.g. Tinashe Moyo', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person))),
+                  const SizedBox(height: 12),
+                  TextField(controller: phoneC, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone Number *', hintText: '+263 77 123 4567', border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone))),
+                  const SizedBox(height: 12),
+                  TextField(controller: emailC, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email (Optional)', hintText: 'You can skip this', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email_outlined))),
+                  const SizedBox(height: 8),
+                  const Text('Email is optional. We use phone number only.', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                  const SizedBox(height: 20),
+                  SizedBox(width: double.infinity, child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009739), padding: const EdgeInsets.all(16)),
+                    onPressed: () {
+                      if(nameC.text.isEmpty || phoneC.text.isEmpty){
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name and Phone required!')));
+                        return;
+                      }
+                      Provider.of<AppData>(context, listen: false).login(nameC.text, phoneC.text, emailC.text);
+                    },
+                    child: const Text('START CHATTING - NO DATA NEEDED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  )),
+                  const SizedBox(height: 12),
+                  const Text('By continuing you agree to use WiFi Direct for nearby sharing (0 bundle).', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: Colors.grey)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -38,142 +108,102 @@ class MainNav extends StatefulWidget {
 
 class _MainNavState extends State<MainNav> {
   int idx = 0;
-  final pages = [const HomePage(), const CartPage(), const OrdersPage(), const ProfilePage()];
+  final pages = [const ChatPage(), const NoDataSharePage(), const MarketPage(), const ProfilePage()];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: pages[idx],
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: idx, onTap: (i) => setState(() => idx = i),
-        selectedItemColor: const Color(0xFF009739),
-        type: BottomNavigationBarType.fixed,
+        currentIndex: idx, onTap: (i) => setState(()=>idx=i),
+        type: BottomNavigationBarType.fixed, selectedItemColor: const Color(0xFF009739),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: 'Cart'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Orders'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+          BottomNavigationBarItem(icon: Icon(Icons.wifi_tethering), label: 'Share No Data'),
+          BottomNavigationBarItem(icon: Icon(Icons.storefront), label: 'Market'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Me'),
         ],
       ),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-  final List shops = const [
-    {'name':'Chicken Inn','cat':'Fast Food','time':'25 min','img':'🍗','items':[{'name':'2 Piece & Chips','price':5.5},{'name':'Full Chicken','price':12.0},{'name':'Burger & Chips','price':4.0},{'name':'Spur Burger','price':6.0}]},
-    {'name':'KFC','cat':'Fast Food','time':'30 min','img':'🍔','items':[{'name':'Streetwise 2','price':6.0},{'name':'9 Piece Bucket','price':18.0},{'name':'Zinger Burger','price':5.5}]},
-    {'name':'Pizza Inn','cat':'Fast Food','time':'35 min','img':'🍕','items':[{'name':'Large Meaty Pizza','price':13.0},{'name':'Chicken Pizza Med','price':9.0},{'name':'Wings 6pc','price':6.5}]},
-    {'name':'TM Pick n Pay','cat':'Groceries','time':'40 min','img':'🛒','items':[{'name':'Rice 5kg','price':8.5},{'name':'Mazoe 2L','price':3.2},{'name':'Bread Loaf','price':1.2},{'name':'Milk 2L','price':2.5},{'name':'Eggs 30','price':7.0}]},
-    {'name':'OK Mart','cat':'Groceries','time':'35 min','img':'🥩','items':[{'name':'Beef 1kg','price':7.5},{'name':'Chicken 1kg','price':5.0},{'name':'Potatoes 5kg','price':4.0},{'name':'Onions 1kg','price':1.5}]},
-    {'name':'Spar','cat':'Groceries','time':'30 min','img':'🥦','items':[{'name':'Tomatoes 1kg','price':2.0},{'name':'Coke 2L','price':2.0},{'name':'Cooking Oil 2L','price':4.5}]},
-  ];
-
+class ChatPage extends StatelessWidget {
+  const ChatPage({super.key});
   @override
   Widget build(BuildContext context) {
+    var data = Provider.of<AppData>(context);
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF009739),
-        title: const Text('ZimDash 🇿🇼 Harare', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        actions: [Consumer<Cart>(builder: (_, c, __) => Padding(padding: const EdgeInsets.all(12), child: Text('${c.count} 🛒', style: const TextStyle(color: Colors.white, fontSize: 18))))],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: const Color(0xFF009739), borderRadius: BorderRadius.circular(12)), child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Delivering across Harare', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)), SizedBox(height: 4), Text('Borrowdale • CBD • Avondale • Highfield • Chitungwiza', style: TextStyle(color: Colors.white70)) ])),
-          const SizedBox(height: 16),
-          const Text('🔥 Fast Food', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-         ...shops.where((s) => s['cat']=='Fast Food').map((s) => shopCard(context, s)),
-          const SizedBox(height: 12),
-          const Text('🛒 Groceries & Markets', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-         ...shops.where((s) => s['cat']=='Groceries').map((s) => shopCard(context, s)),
-        ],
-      ),
+      appBar: AppBar(title: Text('Chats - ${data.name}'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white),
+      body: ListView.builder(itemCount: data.messages.length, itemBuilder: (_, i) => ListTile(
+        leading: CircleAvatar(backgroundColor: data.messages[i]['offline']? Colors.orange : Colors.green, child: Text(data.messages[i]['name'][0])),
+        title: Text(data.messages[i]['name']),
+        subtitle: Text(data.messages[i]['last']),
+        trailing: data.messages[i]['offline']? const Text('NO DATA • Nearby', style: TextStyle(fontSize:10, color: Colors.orange, fontWeight: FontWeight.bold)) : const Icon(Icons.check, color: Colors.blue),
+      )),
+      floatingActionButton: FloatingActionButton(onPressed: (){}, backgroundColor: const Color(0xFF009739), child: const Icon(Icons.chat_bubble, color: Colors.white)),
     );
-  }
-
-  Widget shopCard(BuildContext ctx, Map shop) {
-    return Card(child: ListTile(
-      leading: Text(shop['img'], style: const TextStyle(fontSize: 28)),
-      title: Text(shop['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text('${shop['cat']} • ${shop['time']} • EcoCash • USD • ZiG'),
-      trailing: const Icon(Icons.arrow_forward),
-      onTap: () => Navigator.push(ctx, MaterialPageRoute(builder: (_) => ShopPage(shop: shop))),
-    ));
   }
 }
 
-class ShopPage extends StatelessWidget {
-  final Map shop;
-  const ShopPage({super.key, required this.shop});
+class NoDataSharePage extends StatelessWidget {
+  const NoDataSharePage({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(shop['name']), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white),
-      body: ListView.builder(
-        itemCount: shop['items'].length,
-        itemBuilder: (_, i) {
-          var item = shop['items'][i];
-          return Card(child: ListTile(
-            title: Text(item['name'], style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('\$${item['price']} USD'),
-            trailing: ElevatedButton(onPressed: () { Provider.of<Cart>(context, listen: false).add(item); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${item['name']} added to cart'))); }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009739)), child: const Text('Add', style: TextStyle(color: Colors.white))),
-          ));
-        },
+      appBar: AppBar(title: const Text('Share Without Data'), backgroundColor: Colors.black, foregroundColor: Colors.white),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)), child: const Column(children: [
+              Icon(Icons.wifi_tethering, color: Colors.green, size: 40),
+              SizedBox(height: 8),
+              Text('NEARBY MODE: ON', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+              Text('No bundles needed. Sharing via WiFi Direct.', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              Text('Speed: 20MB/s • Range: 100m', style: TextStyle(color: Colors.white70, fontSize: 12)),
+            ])),
+            const SizedBox(height: 16),
+            const Text('Nearby People in Harare (No Data)', style: TextStyle(fontWeight: FontWeight.bold)),
+            const ListTile(leading: CircleAvatar(child: Text('T')), title: Text('Tinashe - Tecno Spark'), subtitle: Text('50m away • Ready to receive'), trailing: Icon(Icons.wifi, color: Colors.green)),
+            const ListTile(leading: CircleAvatar(child: Text('C')), title: Text('Chipo - Samsung A12'), subtitle: Text('12m away • Ready to receive'), trailing: Icon(Icons.wifi, color: Colors.green)),
+            const Spacer(),
+            Row(children: [
+              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.image), label: const Text('Send Image'), style: ElevatedButton.styleFrom(backgroundColor: Colors.blue))),
+              const SizedBox(width: 8),
+              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.music_note), label: const Text('Music'), style: ElevatedButton.styleFrom(backgroundColor: Colors.orange))),
+            ]),
+            const SizedBox(height: 8),
+            Row(children: [
+              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.movie), label: const Text('Movie/Video'), style: ElevatedButton.styleFrom(backgroundColor: Colors.red))),
+              const SizedBox(width: 8),
+              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.folder), label: const Text('Any File'), style: ElevatedButton.styleFrom(backgroundColor: Colors.purple))),
+            ]),
+            const SizedBox(height: 8),
+            const Text('You can send: JPG, MP3, MP4 movies, APK, PDF, ZIP - ANYTHING, no bundle!', style: TextStyle(fontSize: 11, color: Colors.grey), textAlign: TextAlign.center),
+          ],
+        ),
       ),
     );
   }
 }
 
-class CartPage extends StatefulWidget {
-  const CartPage({super.key});
-  @override
-  State<CartPage> createState() => _CartPageState();
-}
-
-class _CartPageState extends State<CartPage> {
-  String payment = 'EcoCash';
-  String suburb = 'CBD';
-  final suburbs = ['CBD','Borrowdale','Avondale','Highfield','Warren Park','Chitungwiza','Kuwadzana','Mbare','Greendale'];
+class MarketPage extends StatelessWidget {
+  const MarketPage({super.key});
   @override
   Widget build(BuildContext context) {
-    var cart = Provider.of<Cart>(context);
+    var data = Provider.of<AppData>(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Your Cart'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white),
-      body: cart.items.isEmpty? const Center(child: Text('Cart empty. Go add Chicken Inn! 🍗')) :
-      Column(children: [
-        Expanded(child: ListView.builder(itemCount: cart.items.length, itemBuilder: (_, i) => ListTile(title: Text(cart.items[i]['name']), subtitle: Text('Qty: ${cart.items[i]['qty']} • \$${cart.items[i]['price']}'), trailing: IconButton(icon: const Icon(Icons.delete), onPressed: () => cart.remove(i))))),
-        const Divider(),
-        Padding(padding: const EdgeInsets.all(12), child: Column(children: [
-          DropdownButtonFormField(value: suburb, items: suburbs.map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(), onChanged: (v) => setState(() => suburb = v!), decoration: const InputDecoration(labelText: 'Delivery Suburb - Harare', border: OutlineInputBorder())),
-          const SizedBox(height: 8),
-          DropdownButtonFormField(value: payment, items: const [DropdownMenuItem(value: 'EcoCash', child: Text('EcoCash - *151#')), DropdownMenuItem(value: 'OneMoney', child: Text('OneMoney')), DropdownMenuItem(value: 'ZiG', child: Text('ZiG')), DropdownMenuItem(value: 'USD Cash', child: Text('USD Cash on Delivery')), DropdownMenuItem(value: 'Card', child: Text('Visa / ZimSwitch'))].map((e) => e).toList(), onChanged: (v) => setState(() => payment = v!), decoration: const InputDecoration(labelText: 'Payment Method', border: OutlineInputBorder())),
-          const SizedBox(height: 12),
-          Text('Delivery: \$2.00 | Total: \$${(cart.total + 2).toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () { cart.clear(); Navigator.push(context, MaterialPageRoute(builder: (_) => const SuccessPage())); }, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009739), padding: const EdgeInsets.all(16)), child: Text('Pay with $payment - Order Now', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)))),
-        ])),
-      ]),
+      appBar: AppBar(title: const Text('Marketplace - Harare'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white, actions: [IconButton(icon: const Icon(Icons.add), onPressed: (){})]),
+      body: ListView.builder(itemCount: data.marketItems.length, itemBuilder: (_, i) {
+        var item = data.marketItems[i];
+        return Card(child: ListTile(
+          leading: Text(item['img'], style: const TextStyle(fontSize: 30)),
+          title: Text(item['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text('${item['location']} • ${item['seller']}'),
+          trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text('\$${item['price']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)), const Text('Chat', style: TextStyle(color: Colors.blue, fontSize: 12))]),
+        ));
+      }),
     );
-  }
-}
-
-class SuccessPage extends StatelessWidget {
-  const SuccessPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Padding(padding: const EdgeInsets.all(24), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Text('✅', style: TextStyle(fontSize: 80)), const SizedBox(height: 16), const Text('Order Placed!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)), const SizedBox(height: 8), const Text('Your rider is on the way in Harare. You will get SMS on EcoCash to confirm payment.', textAlign: TextAlign.center), const SizedBox(height: 20), ElevatedButton(onPressed: () => Navigator.popUntil(context, (r) => r.isFirst), child: const Text('Back to Home'))]))));
-  }
-}
-
-class OrdersPage extends StatelessWidget {
-  const OrdersPage({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(title: const Text('My Orders'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white), body: ListView(children: const [
-      ListTile(leading: Icon(Icons.check_circle, color: Colors.green), title: Text('Chicken Inn - 2 Piece'), subtitle: Text('Today • Delivered • \$5.50 • EcoCash'), trailing: Text('⭐ 5.0')),
-      ListTile(leading: Icon(Icons.delivery_dining, color: Colors.orange), title: Text('TM Pick n Pay - Groceries'), subtitle: Text('On the way - Rider: Tinashe 077...'), trailing: Text('Live')),
-    ]));
   }
 }
 
@@ -181,13 +211,16 @@ class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: AppBar(title: const Text('Profile'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white), body: ListView(children: const [
-      ListTile(leading: CircleAvatar(child: Text('N')), title: Text('Natician'), subtitle: Text('+263 77... • Harare, Zimbabwe')),
-      Divider(),
-      ListTile(leading: Icon(Icons.location_on), title: Text('Delivery Addresses'), subtitle: Text('Home - Borrowdale, Work - CBD')),
-      ListTile(leading: Icon(Icons.payment), title: Text('EcoCash: 077... • ZiG Account'), subtitle: Text('Verified')),
-      ListTile(leading: Icon(Icons.language), title: Text('Language: English / Shona')),
-      ListTile(leading: Icon(Icons.headset_mic), title: Text('Support: WhatsApp 077...'), subtitle: Text('For Harare deliveries')),
-    ]));
+    var data = Provider.of<AppData>(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('My Profile'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white),
+      body: ListView(children: [
+        ListTile(leading: const CircleAvatar(child: Icon(Icons.person)), title: Text(data.name), subtitle: Text('${data.phone} ${data.email.isNotEmpty? "• ${data.email}" : ""}')),
+        const Divider(),
+        const ListTile(leading: Icon(Icons.wifi_tethering), title: Text('Data Saver: Nearby Sharing ON'), subtitle: Text('Movies & music without bundle - 0 data')),
+        const ListTile(leading: Icon(Icons.security), title: Text('Login: Phone Number Only'), subtitle: Text('Email optional as you requested')),
+        const ListTile(leading: Icon(Icons.language), title: Text('Language: English / Shona')),
+      ]),
+    );
   }
 }
