@@ -15,7 +15,12 @@ jobs:
         with:
           flutter-version: '3.22.0'
           channel: 'stable'
-      - run: flutter pub get
+      - name: Fix Flutter project files
+        run: |
+          mv lib/main.dart /tmp/main.dart
+          flutter create . --project-name zimdash --org com.zimdash.app
+          mv /tmp/main.dart lib/main.dart
+          flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with:
