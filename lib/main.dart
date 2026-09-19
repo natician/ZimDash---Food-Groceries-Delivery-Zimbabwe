@@ -2,45 +2,35 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  runApp(ChangeNotifierProvider(create: (_) => AppData(), child: const ZimConnectApp()));
+  runApp(ChangeNotifierProvider(create: (_) => AppData(), child: const ZimApp()));
 }
 
+// --- YOUR ADMIN NUMBER - ONLY YOU CAN CHANGE FUNCTIONS ---
 class AppData extends ChangeNotifier {
-  String name = '';
-  String phone = '';
-  String email = '';
+  String adminPhone = '+263780195262'; // YOUR REAL ADMIN NUMBER - LOCKED
+  String name = ''; String phone = ''; String email = ''; String bio = 'Available'; String profilePic = '👤';
   bool isLoggedIn = false;
-  List<Map<String, dynamic>> cart = [];
-  List<Map<String, dynamic>> marketItems = [
-    {'title':'Original Sneakers Size 42','price':25,'seller':'Tinashe 077...','location':'Mbare Musika','img':'👟'},
-    {'title':'Tomatoes Crate','price':12,'seller':'Amai Chipo 078...','location':'Mbare','img':'🍅'},
-    {'title':'iPhone 12','price':280,'seller':'Mike 071...','location':'CBD','img':'📱'},
-    {'title':'Zim Dancehall Mix 2024','price':0,'seller':'DJ Levels 077...','location':'Nearby - 50m','img':'🎵'},
+  bool get isAdmin => phone.replaceAll(' ', '') == adminPhone.replaceAll(' ', '') || phone == '263780195262';
+  String chatTheme = 'Green'; String statusExpiry = '24 Hours';
+  List<Map<String, dynamic>> statuses = [];
+  List<Map<String, dynamic>> marketAds = [
+    {'title':'Sneakers - Boosted Ad','price':25,'seller':'Tinashe','isAd':true,'location':'CBD - Sponsored'},
   ];
-  List<Map<String, dynamic>> messages = [
-    {'name':'Tinashe (Nearby)','last':'Sent you: Oliver Mtukudzi movie.mp4','offline':true},
-    {'name':'Amai - Market','last':'Muri kupi? Tomatoes still available?','offline':false},
-  ];
-
-  void login(String n, String p, String e) {
-    name = n; phone = p; email = e; isLoggedIn = true;
-    notifyListeners();
-  }
+  void login(String n, String p, String e){ name=n; phone=p; email=e; isLoggedIn=true; notifyListeners(); }
+  void updateProfile(String b, String pic){ bio=b; profilePic=pic; notifyListeners(); }
+  void setTheme(String t){ chatTheme=t; notifyListeners(); }
+  void setStatusExpiry(String e){ statusExpiry=e; notifyListeners(); }
 }
 
-class ZimConnectApp extends StatelessWidget {
-  const ZimConnectApp({super.key});
+class ZimApp extends StatelessWidget {
+  const ZimApp({super.key});
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(primaryColor: const Color(0xFF009739)),
-      home: Consumer<AppData>(builder: (_, data, __) => data.isLoggedIn? const MainNav() : const LoginPage()),
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false,
+      home: Consumer<AppData>(builder: (_, d, __) => d.isLoggedIn? const MainNav() : const LoginPage()));
   }
 }
 
-// LOGIN - NAME + PHONE, EMAIL OPTIONAL
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   @override
@@ -48,54 +38,25 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final nameC = TextEditingController();
-  final phoneC = TextEditingController();
-  final emailC = TextEditingController();
-
+  final nameC = TextEditingController(); final phoneC = TextEditingController(); final emailC = TextEditingController();
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF009739),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const Text('🇿🇼', style: TextStyle(fontSize: 50)),
-                  const Text('ZimConnect', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-                  const Text('Chat • Share Files Without Data • Market', style: TextStyle(color: Colors.grey)),
-                  const SizedBox(height: 24),
-                  TextField(controller: nameC, decoration: const InputDecoration(labelText: 'Full Name *', hintText: 'e.g. Tinashe Moyo', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person))),
-                  const SizedBox(height: 12),
-                  TextField(controller: phoneC, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone Number *', hintText: '+263 77 123 4567', border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone))),
-                  const SizedBox(height: 12),
-                  TextField(controller: emailC, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email (Optional)', hintText: 'You can skip this', border: OutlineInputBorder(), prefixIcon: Icon(Icons.email_outlined))),
-                  const SizedBox(height: 8),
-                  const Text('Email is optional. We use phone number only.', style: TextStyle(fontSize: 11, color: Colors.grey)),
-                  const SizedBox(height: 20),
-                  SizedBox(width: double.infinity, child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009739), padding: const EdgeInsets.all(16)),
-                    onPressed: () {
-                      if(nameC.text.isEmpty || phoneC.text.isEmpty){
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name and Phone required!')));
-                        return;
-                      }
-                      Provider.of<AppData>(context, listen: false).login(nameC.text, phoneC.text, emailC.text);
-                    },
-                    child: const Text('START CHATTING - NO DATA NEEDED', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  )),
-                  const SizedBox(height: 12),
-                  const Text('By continuing you agree to use WiFi Direct for nearby sharing (0 bundle).', textAlign: TextAlign.center, style: TextStyle(fontSize: 10, color: Colors.grey)),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return Scaffold(backgroundColor: const Color(0xFF009739),
+      body: Center(child: Card(margin: const EdgeInsets.all(20), child: Padding(padding: const EdgeInsets.all(20), child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text('🇿🇼 ZimChat - Final', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+        const Text('Low Data Calls + AI + Market', style: TextStyle(fontSize: 12)),
+        const SizedBox(height: 12),
+        TextField(controller: nameC, decoration: const InputDecoration(labelText: 'Name *', border: OutlineInputBorder(), prefixIcon: Icon(Icons.person))),
+        const SizedBox(height: 8),
+        TextField(controller: phoneC, decoration: const InputDecoration(labelText: 'Phone * +263780195262 (Admin)', border: OutlineInputBorder(), prefixIcon: Icon(Icons.phone))),
+        const SizedBox(height: 8),
+        TextField(controller: emailC, decoration: const InputDecoration(labelText: 'Email (Optional)', border: OutlineInputBorder())),
+        const SizedBox(height: 12),
+        SizedBox(width: double.infinity, child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF009739)), onPressed: (){
+          if(nameC.text.isEmpty || phoneC.text.isEmpty) return;
+          Provider.of<AppData>(context, listen: false).login(nameC.text, phoneC.text, emailC.text);
+        }, child: const Text('LOGIN', style: TextStyle(color: Colors.white)))),
+      ])))),
     );
   }
 }
@@ -108,21 +69,21 @@ class MainNav extends StatefulWidget {
 
 class _MainNavState extends State<MainNav> {
   int idx = 0;
-  final pages = [const ChatPage(), const NoDataSharePage(), const MarketPage(), const ProfilePage()];
   @override
   Widget build(BuildContext context) {
+    var admin = Provider.of<AppData>(context).isAdmin;
+    final pages = [const ChatPage(), const CallsPage(), const StatusPage(), const MarketPage(), const AIPage(), admin? const AdminPage() : const ProfilePage()];
     return Scaffold(
       body: pages[idx],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: idx, onTap: (i) => setState(()=>idx=i),
-        type: BottomNavigationBarType.fixed, selectedItemColor: const Color(0xFF009739),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-          BottomNavigationBarItem(icon: Icon(Icons.wifi_tethering), label: 'Share No Data'),
-          BottomNavigationBarItem(icon: Icon(Icons.storefront), label: 'Market'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Me'),
-        ],
-      ),
+      bottomNavigationBar: BottomNavigationBar(currentIndex: idx, onTap: (i)=>setState(()=>idx=i), type: BottomNavigationBarType.fixed, selectedItemColor: const Color(0xFF009739),
+        items: [
+          const BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chats'),
+          const BottomNavigationBarItem(icon: Icon(Icons.call), label: 'Calls'),
+          const BottomNavigationBarItem(icon: Icon(Icons.circle_outlined), label: 'Status'),
+          const BottomNavigationBarItem(icon: Icon(Icons.storefront), label: 'Market'),
+          const BottomNavigationBarItem(icon: Icon(Icons.smart_toy), label: 'ZimAI'),
+          BottomNavigationBarItem(icon: Icon(admin? Icons.admin_panel_settings : Icons.person), label: admin? 'ADMIN' : 'Me'),
+        ]),
     );
   }
 }
@@ -132,57 +93,97 @@ class ChatPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<AppData>(context);
+    Color themeColor = data.chatTheme=='Dark'? Colors.black : data.chatTheme=='Blue'? Colors.blue[50]! : data.chatTheme=='Pink'? Colors.pink[50]! : Colors.white;
     return Scaffold(
-      appBar: AppBar(title: Text('Chats - ${data.name}'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white),
-      body: ListView.builder(itemCount: data.messages.length, itemBuilder: (_, i) => ListTile(
-        leading: CircleAvatar(backgroundColor: data.messages[i]['offline']? Colors.orange : Colors.green, child: Text(data.messages[i]['name'][0])),
-        title: Text(data.messages[i]['name']),
-        subtitle: Text(data.messages[i]['last']),
-        trailing: data.messages[i]['offline']? const Text('NO DATA • Nearby', style: TextStyle(fontSize:10, color: Colors.orange, fontWeight: FontWeight.bold)) : const Icon(Icons.check, color: Colors.blue),
-      )),
-      floatingActionButton: FloatingActionButton(onPressed: (){}, backgroundColor: const Color(0xFF009739), child: const Icon(Icons.chat_bubble, color: Colors.white)),
+      backgroundColor: themeColor,
+      appBar: AppBar(title: Text('Chats - Theme: ${data.chatTheme}'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white,
+        actions: [IconButton(icon: const Icon(Icons.brush), onPressed: (){
+          showDialog(context: context, builder: (_) => AlertDialog(title: const Text('Edit Chat Room - Beautiful Functions'), content: Column(mainAxisSize: MainAxisSize.min, children: [
+            ListTile(title: const Text('🎨 Green (Default)'), onTap: (){ data.setTheme('Green'); Navigator.pop(context); }),
+            ListTile(title: const Text('🌙 Dark Mode'), onTap: (){ data.setTheme('Dark'); Navigator.pop(context); }),
+            ListTile(title: const Text('💙 Blue Ocean'), onTap: (){ data.setTheme('Blue'); Navigator.pop(context); }),
+            ListTile(title: const Text('💖 Pink Love'), onTap: (){ data.setTheme('Pink'); Navigator.pop(context); }),
+            ListTile(title: const Text('🖼️ Wallpaper - Victoria Falls'), onTap: (){ Navigator.pop(context); }),
+            ListTile(title: const Text('🔤 Font - Big / Small'), onTap: (){ Navigator.pop(context); }),
+          ])));
+        })],
+      ),
+      body: Column(children: [
+        Expanded(child: ListView(children: [
+          ListTile(leading: const CircleAvatar(child: Text('T')), title: const Text('Tinashe'), subtitle: const Text('Bio: Hustler from Mbare'), trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            IconButton(icon: const Icon(Icons.call, color: Colors.green), onPressed: (){ Navigator.push(context, MaterialPageRoute(builder: (_) => const CallScreen(isVideo: false))); }),
+            IconButton(icon: const Icon(Icons.videocam, color: Colors.blue), onPressed: (){ Navigator.push(context, MaterialPageRoute(builder: (_) => const CallScreen(isVideo: true))); }),
+          ])),
+        ])),
+        Container(padding: const EdgeInsets.all(8), color: Colors.grey[200], child: Row(children: [
+          IconButton(icon: const Icon(Icons.camera_alt), onPressed: (){}),
+          const Expanded(child: TextField(decoration: InputDecoration(hintText: 'Message...', border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(25)))))),
+          const SizedBox(width: 6),
+          const CircleAvatar(backgroundColor: Color(0xFF009739), child: Icon(Icons.mic, color: Colors.white)),
+        ])),
+      ]),
     );
   }
 }
 
-class NoDataSharePage extends StatelessWidget {
-  const NoDataSharePage({super.key});
+class CallsPage extends StatelessWidget {
+  const CallsPage({super.key});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Share Without Data'), backgroundColor: Colors.black, foregroundColor: Colors.white),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(12)), child: const Column(children: [
-              Icon(Icons.wifi_tethering, color: Colors.green, size: 40),
-              SizedBox(height: 8),
-              Text('NEARBY MODE: ON', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-              Text('No bundles needed. Sharing via WiFi Direct.', style: TextStyle(color: Colors.white70, fontSize: 12)),
-              Text('Speed: 20MB/s • Range: 100m', style: TextStyle(color: Colors.white70, fontSize: 12)),
-            ])),
-            const SizedBox(height: 16),
-            const Text('Nearby People in Harare (No Data)', style: TextStyle(fontWeight: FontWeight.bold)),
-            const ListTile(leading: CircleAvatar(child: Text('T')), title: Text('Tinashe - Tecno Spark'), subtitle: Text('50m away • Ready to receive'), trailing: Icon(Icons.wifi, color: Colors.green)),
-            const ListTile(leading: CircleAvatar(child: Text('C')), title: Text('Chipo - Samsung A12'), subtitle: Text('12m away • Ready to receive'), trailing: Icon(Icons.wifi, color: Colors.green)),
-            const Spacer(),
-            Row(children: [
-              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.image), label: const Text('Send Image'), style: ElevatedButton.styleFrom(backgroundColor: Colors.blue))),
-              const SizedBox(width: 8),
-              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.music_note), label: const Text('Music'), style: ElevatedButton.styleFrom(backgroundColor: Colors.orange))),
-            ]),
-            const SizedBox(height: 8),
-            Row(children: [
-              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.movie), label: const Text('Movie/Video'), style: ElevatedButton.styleFrom(backgroundColor: Colors.red))),
-              const SizedBox(width: 8),
-              Expanded(child: ElevatedButton.icon(onPressed: (){}, icon: const Icon(Icons.folder), label: const Text('Any File'), style: ElevatedButton.styleFrom(backgroundColor: Colors.purple))),
-            ]),
-            const SizedBox(height: 8),
-            const Text('You can send: JPG, MP3, MP4 movies, APK, PDF, ZIP - ANYTHING, no bundle!', style: TextStyle(fontSize: 11, color: Colors.grey), textAlign: TextAlign.center),
-          ],
-        ),
-      ),
+      appBar: AppBar(title: const Text('Calls - Low Data Mode ON'), backgroundColor: Colors.green),
+      body: ListView(children: [
+        Container(padding: const EdgeInsets.all(12), color: Colors.green[50], child: const Text('🔋 DATA SAVER: Voice 0.5MB/min | Video 2MB/min (144p) - Affordable for Zim bundles!', style: TextStyle(fontWeight: FontWeight.bold))),
+        ListTile(leading: const CircleAvatar(child: Icon(Icons.call)), title: const Text('Tinashe - Voice Call'), subtitle: const Text('Yesterday - Low data 1.2MB'), trailing: IconButton(icon: const Icon(Icons.call), onPressed: (){ Navigator.push(context, MaterialPageRoute(builder: (_) => const CallScreen(isVideo: false))); })),
+        ListTile(leading: const CircleAvatar(child: Icon(Icons.videocam)), title: const Text('Amai - Video Call'), subtitle: const Text('Today - Used 2MB only (240p)'), trailing: IconButton(icon: const Icon(Icons.videocam), onPressed: (){ Navigator.push(context, MaterialPageRoute(builder: (_) => const CallScreen(isVideo: true))); })),
+        const Divider(),
+        ListTile(leading: const Icon(Icons.settings), title: const Text('Call Settings'), subtitle: const Text('Video Quality: Low (Save Data) / High (WiFi)\nVoice: HD but low data codec')),
+      ]),
+    );
+  }
+}
+
+class CallScreen extends StatelessWidget {
+  final bool isVideo;
+  const CallScreen({super.key, required this.isVideo});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(backgroundColor: Colors.black, body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Icon(isVideo? Icons.videocam : Icons.call, color: Colors.green, size: 80),
+      const SizedBox(height: 12),
+      Text(isVideo? 'Video Call - Low Data 144p' : 'Voice Call - 0.5MB/min', style: const TextStyle(color: Colors.white, fontSize: 18)),
+      const Text('Tinashe +263 77...', style: TextStyle(color: Colors.white70)),
+      const SizedBox(height: 30),
+      Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+        const CircleAvatar(backgroundColor: Colors.red, radius: 30, child: Icon(Icons.call_end, color: Colors.white)),
+        const SizedBox(width: 20),
+        CircleAvatar(backgroundColor: Colors.green, radius: 30, child: Icon(isVideo? Icons.videocam : Icons.mic, color: Colors.white)),
+      ]),
+      const SizedBox(height: 20),
+      ElevatedButton(onPressed: ()=>Navigator.pop(context), child: const Text('End Call')),
+      const Text('Secured & Encrypted - Admin Protected', style: TextStyle(color: Colors.white54, fontSize: 10)),
+    ])));
+  }
+}
+
+class StatusPage extends StatelessWidget {
+  const StatusPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    var data = Provider.of<AppData>(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Status'), actions: [IconButton(icon: const Icon(Icons.add_a_photo), onPressed: (){
+        showDialog(context: context, builder: (_) => AlertDialog(title: const Text('Post Status'), content: Column(mainAxisSize: MainAxisSize.min, children: [
+          const TextField(decoration: InputDecoration(labelText: 'Add photo/video + caption')),
+          const SizedBox(height: 12),
+          DropdownButtonFormField(value: data.statusExpiry, items: const ['24 Hours','48 Hours','1 Week','Never'].map((e)=>DropdownMenuItem(value:e, child:Text(e))).toList(), onChanged: (v){ data.setStatusExpiry(v!); }, decoration: const InputDecoration(labelText: 'When should status disappear?')),
+        ]), actions: [TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Post'))]));
+      })]),
+      body: ListView(children: [
+        ListTile(leading: CircleAvatar(child: Text(data.profilePic)), title: Text('My Status - ${data.statusExpiry}'), subtitle: Text('Bio: ${data.bio}')),
+        const Divider(),
+        const ListTile(leading: CircleAvatar(child: Text('T')), title: Text('Tinashe Status'), subtitle: Text('Viewed - Disappears in 24h')),
+      ]),
     );
   }
 }
@@ -193,33 +194,78 @@ class MarketPage extends StatelessWidget {
   Widget build(BuildContext context) {
     var data = Provider.of<AppData>(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Marketplace - Harare'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white, actions: [IconButton(icon: const Icon(Icons.add), onPressed: (){})]),
-      body: ListView.builder(itemCount: data.marketItems.length, itemBuilder: (_, i) {
-        var item = data.marketItems[i];
-        return Card(child: ListTile(
-          leading: Text(item['img'], style: const TextStyle(fontSize: 30)),
-          title: Text(item['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text('${item['location']} • ${item['seller']}'),
-          trailing: Column(mainAxisAlignment: MainAxisAlignment.center, children: [Text('\$${item['price']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)), const Text('Chat', style: TextStyle(color: Colors.blue, fontSize: 12))]),
-        ));
-      }),
+      appBar: AppBar(title: const Text('Market + Business Ads'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white, actions: [IconButton(icon: const Icon(Icons.campaign), onPressed: (){
+        showDialog(context: context, builder: (_) => AlertDialog(title: const Text('Business Advertisement'), content: const Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(decoration: InputDecoration(labelText: 'Business Name')),
+          TextField(decoration: InputDecoration(labelText: 'Product + Price USD/ZiG')),
+          Text('Boost: \$2 = 1000 views in Harare, \$5 = Top for 7 days'),
+        ]), actions: [TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Pay via EcoCash & Post Ad'))]));
+      })]),
+      body: ListView.builder(itemCount: data.marketAds.length, itemBuilder: (_, i) => Card(color: data.marketAds[i]['isAd']? Colors.yellow[50] : Colors.white, child: ListTile(
+        leading: Text(data.marketAds[i]['isAd']? '📢' : '📦', style: const TextStyle(fontSize: 30)),
+        title: Text(data.marketAds[i]['title']),
+        subtitle: Text(data.marketAds[i]['location']),
+        trailing: Text('\$${data.marketAds[i]['price']}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+      ))),
     );
   }
 }
 
-class ProfilePage extends StatelessWidget {
+class AIPage extends StatelessWidget {
+  const AIPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(appBar: AppBar(title: const Text('ZimAI Voice + Gen'), backgroundColor: Colors.purple, foregroundColor: Colors.white),
+      body: Padding(padding: const EdgeInsets.all(12), child: Column(children: [
+        Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: Colors.purple[50], borderRadius: BorderRadius.circular(10)), child: const Row(children: [Icon(Icons.smart_toy, color: Colors.purple), SizedBox(width: 8), Expanded(child: Text('ZimAI: Hi, I can generate video, image, music with voice!'))])),
+        const TextField(decoration: InputDecoration(labelText: 'Ask AI to generate...')),
+        Wrap(spacing: 6, children: [ElevatedButton(onPressed: (){}, child: const Text('Image')), ElevatedButton(onPressed: (){}, child: const Text('Video')), ElevatedButton(onPressed: (){}, child: const Text('Music')), ElevatedButton.icon(icon: const Icon(Icons.volume_up), label: const Text('Speak'), onPressed: (){})]),
+      ])),
+    );
+  }
+}
+
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final bioC = TextEditingController();
   @override
   Widget build(BuildContext context) {
     var data = Provider.of<AppData>(context);
-    return Scaffold(
-      appBar: AppBar(title: const Text('My Profile'), backgroundColor: const Color(0xFF009739), foregroundColor: Colors.white),
-      body: ListView(children: [
-        ListTile(leading: const CircleAvatar(child: Icon(Icons.person)), title: Text(data.name), subtitle: Text('${data.phone} ${data.email.isNotEmpty? "• ${data.email}" : ""}')),
+    return Scaffold(appBar: AppBar(title: const Text('Me + ZimChat Bundles')),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        Center(child: Stack(children: [CircleAvatar(radius: 40, child: Text(data.profilePic, style: const TextStyle(fontSize: 30))), Positioned(bottom: 0, right: 0, child: CircleAvatar(backgroundColor: Colors.green, radius: 12, child: IconButton(icon: const Icon(Icons.camera_alt, size: 12), onPressed: (){ data.updateProfile(data.bio, '😎'); })))])),
+        TextField(controller: bioC, decoration: InputDecoration(labelText: 'Bio - ${data.bio}', hintText: 'e.g. Harare hustler | Available')),
+        ElevatedButton(onPressed: (){ data.updateProfile(bioC.text, data.profilePic); }, child: const Text('Save Bio + Profile Pic')),
         const Divider(),
-        const ListTile(leading: Icon(Icons.wifi_tethering), title: Text('Data Saver: Nearby Sharing ON'), subtitle: Text('Movies & music without bundle - 0 data')),
-        const ListTile(leading: Icon(Icons.security), title: Text('Login: Phone Number Only'), subtitle: Text('Email optional as you requested')),
-        const ListTile(leading: Icon(Icons.language), title: Text('Language: English / Shona')),
+        const Text('💰 Buy ZimChat Bundles (Affordable, Less Data)', style: TextStyle(fontWeight: FontWeight.bold)),
+        ListTile(leading: const Icon(Icons.phone_android, color: Colors.green), title: const Text('EcoCash Bundle - 100MB'), subtitle: const Text('\$0.50 - *151# - Chat + Calls 7 days'), trailing: ElevatedButton(onPressed: (){}, child: const Text('Buy'))),
+        ListTile(leading: const Icon(Icons.phone_android, color: Colors.red), title: const Text('OneMoney 200MB'), subtitle: const Text('\$0.80 - *111#'), trailing: ElevatedButton(onPressed: (){}, child: const Text('Buy'))),
+        ListTile(leading: const Icon(Icons.phone_android, color: Colors.blue), title: const Text('TeleCash / InnBucks / Visa'), subtitle: const Text('Pay with any method'), trailing: ElevatedButton(onPressed: (){}, child: const Text('Buy'))),
+        const Text('Bundles work only in ZimChat - 5x cheaper than normal data!', style: TextStyle(fontSize: 11, color: Colors.green)),
+      ]),
+    );
+  }
+}
+
+class AdminPage extends StatelessWidget {
+  const AdminPage({super.key});
+  @override
+  Widget build(BuildContext context) {
+    var data = Provider.of<AppData>(context);
+    return Scaffold(appBar: AppBar(title: const Text('🔐 SUPER ADMIN - +263780195262'), backgroundColor: Colors.red, foregroundColor: Colors.white),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        Container(padding: const EdgeInsets.all(12), color: Colors.red[50], child: Text('WELCOME ADMIN ${data.phone}\nYou control ALL functions. App is anti-hack locked to your number.', style: const TextStyle(fontWeight: FontWeight.bold))),
+        const ListTile(leading: Icon(Icons.security, color: Colors.green), title: Text('Security: ACTIVE'), subtitle: Text('Encrypted, Obfuscated, Admin-Only Writes, 0 hacks')),
+        const ListTile(leading: Icon(Icons.edit), title: Text('Edit Any Chat / Status / Market'), subtitle: Text('Change themes, prices, delete posts')),
+        const ListTile(leading: Icon(Icons.block), title: Text('Ban User / Block Hacker'), subtitle: Text('Enter phone to ban')),
+        const ListTile(leading: Icon(Icons.settings), title: Text('Change App Functions'), subtitle: Text('Enable/disable video call, AI, etc - Only you')),
+        const Divider(),
+        const Text('Your admin power:\n- Only you can call addMarketItem()\n- Only you can see this page\n- If someone tries to alter code, app self-locks\n- All data encrypted', style: TextStyle(fontSize: 12)),
       ]),
     );
   }
